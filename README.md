@@ -16,5 +16,5 @@ php artisan db:seed
 ```
 php artisan serve --host=your.ip --port=8000
 ```
-### After you run the api now u can open your flutter app neither using android studio or visual studio code
+### After you run the api now you can open your flutter app neither using android studio or visual studio code
 ### make sure the laravel api is on
