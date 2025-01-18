@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:client_152022047/styles.dart';
 import 'package:client_152022047/api/local_api.dart'; // Import LocalApi
+import 'package:url_launcher/url_launcher.dart';
 
 class SoalBOSApi {
   // Get all data
@@ -34,6 +35,13 @@ class _SoalBOSClientPageState extends State<SoalBOSClientPage> {
     _soalBOSList = _soalBOSApi.getAllSoalBOS();
   }
 
+  Future<void> _openInBrowser(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,145 +56,105 @@ class _SoalBOSClientPageState extends State<SoalBOSClientPage> {
       body: Container(
         color: AppColors.skyBlue,
         padding: EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Card(
-                color: AppColors.powderBlue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+        child: FutureBuilder<List<dynamic>>(
+          future: _soalBOSList,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  style: TextStyle(color: Colors.red),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Instruksi:',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.royalBlue,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Tekan untuk membuka PDF.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        'Tekan dan tahan untuk menyalin link PDF.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Text(
+                  'Tidak ada data soal BOS.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.royalBlue,
                   ),
                 ),
-              ),
-            ),
-            Expanded(
-              child: FutureBuilder<List<dynamic>>(
-                future: _soalBOSList,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error: ${snapshot.error}',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    );
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'Tidak ada data soal BOS.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppColors.royalBlue,
-                        ),
-                      ),
-                    );
-                  } else {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final soalBOS = snapshot.data![index];
-                        return Card(
-                          color: AppColors.powderBlue,
-                          margin: EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 12.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ListTile(
-                            title: Text(
-                              soalBOS['nama'],
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.royalBlue,
-                              ),
+              );
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  final soalBOS = snapshot.data![index];
+                  return Card(
+                    color: AppColors.powderBlue,
+                    margin:
+                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            soalBOS['nama'],
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.royalBlue,
+                              fontSize: 18,
                             ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Jenis: ${soalBOS['jenis']}',
-                                  style: TextStyle(color: Colors.black87),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PDFViewerPage(
-                                          pdfUrl: soalBOS['url'],
-                                        ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Jenis: ${soalBOS['jenis']}',
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                          SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PDFViewerPage(
+                                        pdfUrl: soalBOS['url'],
                                       ),
-                                    );
-                                  },
-                                  onLongPress: () {
-                                    Clipboard.setData(
-                                        ClipboardData(text: soalBOS['url']));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content:
-                                              Text('URL disalin ke clipboard')),
-                                    );
-                                  },
-                                  child: Text(
-                                    soalBOS['url'],
-                                    style: TextStyle(
-                                      color:
-                                          const Color.fromARGB(255, 16, 29, 41),
-                                      fontWeight: FontWeight.bold,
-                                      decoration: TextDecoration.underline,
-                                      decorationThickness: 2,
                                     ),
-                                  ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.royalBlue,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
                                 ),
-                              ],
-                            ),
+                                child: Text(
+                                  'Open PDF Viewer',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => _openInBrowser(soalBOS['url']),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                ),
+                                child: Text(
+                                  'Open in Browser',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    );
-                  }
+                        ],
+                      ),
+                    ),
+                  );
                 },
-              ),
-            ),
-          ],
+              );
+            }
+          },
         ),
       ),
     );

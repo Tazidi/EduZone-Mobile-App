@@ -2,6 +2,7 @@ import 'package:admin_152022047/api/local_api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:d_chart/d_chart.dart';
 
 import 'package:admin_152022047/auth/login_screen.dart';
 import 'package:admin_152022047/screens/Admin_Chat_List_Page.dart';
@@ -9,9 +10,7 @@ import 'package:admin_152022047/screens/kalender_akademik_admin.dart';
 import 'package:admin_152022047/screens/kelola_user_page.dart';
 import 'package:admin_152022047/screens/show_all_table.dart';
 import 'package:admin_152022047/screens/soal_bos_admin_page.dart';
-import 'package:admin_152022047/screens/grafik_kelas_siswa.dart';
 import 'package:admin_152022047/styles.dart';
-
 
 class AdminDashboard extends StatelessWidget {
   Future<void> _showAllTables(BuildContext context) async {
@@ -58,6 +57,37 @@ class AdminDashboard extends StatelessWidget {
     }
   }
 
+  Future<Map<String, dynamic>> fetchData() async {
+    final url = Uri.parse("${LocalApi.baseUrl}/table/users");
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      List<dynamic> jsonData = json.decode(response.body);
+      Map<String, int> kelasCount = {};
+
+      for (var item in jsonData) {
+        String kelas = item['kelas'];
+        kelasCount[kelas] = (kelasCount[kelas] ?? 0) + 1;
+      }
+
+      // Urutkan kelas berdasarkan urutan 7, 8, 9
+      Map<String, int> sortedKelasCount = {
+        '7': kelasCount['7'] ?? 0,
+        '8': kelasCount['8'] ?? 0,
+        '9': kelasCount['9'] ?? 0,
+      };
+
+      return {
+        'kelasCount': sortedKelasCount,
+        'totalUsers': jsonData.length,
+      };
+    } else {
+      return {
+        'kelasCount': {},
+        'totalUsers': 0,
+      }; // Pastikan data tidak null jika gagal
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,16 +122,6 @@ class AdminDashboard extends StatelessWidget {
               onTap: () => _showAllTables(context),
             ),
             ListTile(
-              leading: Icon(Icons.bar_chart),
-              title: Text('Lihat Grafik Kelas Siswa'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => GrafikKelasSiswa()),
-                );
-              },
-            ),
-            ListTile(
               leading: Icon(Icons.logout),
               title: Text('Logout'),
               onTap: () {
@@ -117,57 +137,107 @@ class AdminDashboard extends StatelessWidget {
       body: Container(
         color: AppColors.skyBlue, // Latar belakang skyBlue
         padding: const EdgeInsets.all(16.0),
-        child: GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
+        child: Column(
           children: [
-            _buildDashboardButton(
-              context,
-              icon: Icons.people,
-              label: 'Manage Siswa',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => KelolaUserPage()),
-                );
+            FutureBuilder<Map<String, dynamic>>(
+              future: fetchData(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('Tidak ada data'));
+                } else {
+                  Map<String, int> kelasCount = snapshot.data!['kelasCount'];
+                  int totalUsers = snapshot.data!['totalUsers'];
+                  List<OrdinalData> chartData = kelasCount.entries
+                      .map((e) => OrdinalData(
+                          domain: 'Kelas ${e.key}', measure: e.value))
+                      .toList();
+
+                  return Column(
+                    children: [
+                      Text(
+                        'Jumlah Siswa: $totalUsers',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 16),
+                      AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: DChartBarO(
+                          groupList: [
+                            OrdinalGroup(
+                              id: 'Jumlah Siswa',
+                              data: chartData,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                    ],
+                  );
+                }
               },
             ),
-            _buildDashboardButton(
-              context,
-              icon: Icons.calendar_today,
-              label: 'Manage Kalender Akademik',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => KalenderAkademikAdminPage()),
-                );
-              },
-            ),
-            _buildDashboardButton(
-              context,
-              icon: Icons.book,
-              label: 'Manage Soal / Buku BOS',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SoalBOSAdminPage()),
-                );
-              },
-            ),
-            _buildDashboardButton(
-              context,
-              icon: Icons.chat,
-              label: 'Manage Chats',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          AdminChatListPage(adminUsername: 'adminUsername')),
-                );
-              },
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                children: [
+                  _buildDashboardButton(
+                    context,
+                    icon: Icons.people,
+                    label: 'Manage Siswa',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => KelolaUserPage()),
+                      );
+                    },
+                  ),
+                  _buildDashboardButton(
+                    context,
+                    icon: Icons.calendar_today,
+                    label: 'Manage Kalender Akademik',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => KalenderAkademikAdminPage()),
+                      );
+                    },
+                  ),
+                  _buildDashboardButton(
+                    context,
+                    icon: Icons.book,
+                    label: 'Manage Soal / Buku BOS',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SoalBOSAdminPage()),
+                      );
+                    },
+                  ),
+                  _buildDashboardButton(
+                    context,
+                    icon: Icons.chat,
+                    label: 'Manage Chats',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AdminChatListPage(
+                                adminUsername: 'adminUsername')),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),

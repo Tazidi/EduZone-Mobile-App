@@ -6,6 +6,7 @@ import 'package:client_152022047/screens/tentang_aplikasi.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:client_152022047/styles.dart';
+import 'package:url_launcher/url_launcher.dart'; // Import untuk membuka link
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -67,6 +68,15 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  final Uri _videoDemoUrl = Uri.parse(
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ'); // Ganti link sesuai kebutuhan
+
+  Future<void> _openVideoDemo() async {
+    if (!await launchUrl(_videoDemoUrl)) {
+      throw Exception('Could not launch $_videoDemoUrl');
     }
   }
 
@@ -197,6 +207,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Text(
                     'Tentang Aplikasi',
+                    style: TextStyle(fontSize: 14, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  onPressed: _openVideoDemo,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.royalBlue, // RoyalBlue
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Text(
+                    'Video Demo',
                     style: TextStyle(fontSize: 14, color: Colors.white),
                   ),
                 ),
