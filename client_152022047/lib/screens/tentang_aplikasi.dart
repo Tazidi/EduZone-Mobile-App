@@ -42,7 +42,7 @@ class TentangAplikasiScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 16),
                     Text(
-                      'Aplikasi EduZone Versi Admin',
+                      'Aplikasi EduZone',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

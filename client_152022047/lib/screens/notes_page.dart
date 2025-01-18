@@ -43,6 +43,67 @@ class _NotesPageState extends State<NotesPage> {
     }
   }
 
+  Future<void> _saveNote() async {
+    if (_tugasController.text.isEmpty ||
+        _kegiatanController.text.isEmpty ||
+        _selectedDeadline == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Mohon lengkapi semua field')),
+      );
+      return;
+    }
+
+    final noteData = {
+      'user_id': widget.userId,
+      'tugas': _tugasController.text,
+      'kegiatan': _kegiatanController.text,
+      'deadline': _selectedDeadline!.toIso8601String(),
+    };
+
+    try {
+      if (_editingNoteId == null) {
+        // Tambah catatan baru
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(noteData),
+        );
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Catatan berhasil ditambahkan')),
+          );
+        } else {
+          throw Exception('Gagal menambahkan catatan');
+        }
+      } else {
+        // Update catatan yang ada
+        final response = await http.put(
+          Uri.parse("$apiUrl/$_editingNoteId"),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(noteData),
+        );
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Catatan berhasil diperbarui')),
+          );
+        } else {
+          throw Exception('Gagal memperbarui catatan');
+        }
+      }
+    } catch (e) {
+      print("Error saving note: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan saat menyimpan catatan')),
+      );
+    } finally {
+      Navigator.of(context).pop(); // Tutup dialog
+      _fetchNotes(); // Refresh daftar catatan
+      _tugasController.clear();
+      _kegiatanController.clear();
+      _selectedDeadline = null;
+    }
+  }
+
   Future<void> _deleteNote(int noteId) async {
     try {
       final response = await http.delete(Uri.parse("$apiUrl/$noteId"));
@@ -76,14 +137,14 @@ class _NotesPageState extends State<NotesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.skyBlue, // Warna latar belakang dialog
+          backgroundColor: AppColors.skyBlue,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15), // Membuat sudut melengkung
+            borderRadius: BorderRadius.circular(15),
           ),
           title: Text(
             _editingNoteId == null ? 'Tambah Catatan' : 'Edit Catatan',
             style: TextStyle(
-              color: AppColors.royalBlue, // Warna teks judul royalBlue
+              color: AppColors.royalBlue,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -94,39 +155,23 @@ class _NotesPageState extends State<NotesPage> {
               children: [
                 TextField(
                   controller: _tugasController,
-                  style: TextStyle(
-                    fontSize: 14, // Ukuran font teks input
-                    color: Colors.black, // Warna teks input (opsional)
-                  ),
                   decoration: InputDecoration(
                     labelText: 'Tugas',
-                    labelStyle: TextStyle(
-                      fontSize: 20, // Ukuran font label
-                      color: AppColors.royalBlue, // Warna label
-                    ),
                     filled: true,
-                    fillColor: AppColors.powderBlue, // Warna latar TextField
+                    fillColor: AppColors.powderBlue,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-                SizedBox(height: 30),
+                SizedBox(height: 16),
                 TextField(
                   controller: _kegiatanController,
-                  style: TextStyle(
-                    fontSize: 14, // Ukuran font teks input
-                    color: Colors.black, // Warna teks input (opsional)
-                  ),
                   decoration: InputDecoration(
                     labelText: 'Kegiatan',
-                    labelStyle: TextStyle(
-                      fontSize: 20, // Ukuran font label
-                      color: AppColors.royalBlue, // Warna label
-                    ),
                     filled: true,
-                    fillColor: AppColors.powderBlue, // Warna latar TextField
+                    fillColor: AppColors.powderBlue,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -141,10 +186,7 @@ class _NotesPageState extends State<NotesPage> {
                         _selectedDeadline == null
                             ? 'Pilih Deadline'
                             : 'Deadline: ${_selectedDeadline.toString().split(' ')[0]}',
-                        style: TextStyle(
-                          color: AppColors.royalBlue, // Warna teks deadline
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: AppColors.royalBlue),
                       ),
                     ),
                     TextButton(
@@ -155,7 +197,6 @@ class _NotesPageState extends State<NotesPage> {
                           firstDate: DateTime.now(),
                           lastDate: DateTime(2100),
                         );
-
                         if (pickedDate != null) {
                           setState(() {
                             _selectedDeadline = pickedDate;
@@ -163,22 +204,12 @@ class _NotesPageState extends State<NotesPage> {
                         }
                       },
                       style: TextButton.styleFrom(
-                        backgroundColor:
-                            AppColors.royalBlue, // Warna latar tombol
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              10), // Membuat sudut tombol melengkung
-                        ),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6), // Ukuran tombol
+                        backgroundColor: AppColors.royalBlue,
+                        padding: EdgeInsets.symmetric(horizontal: 12),
                       ),
                       child: Text(
                         'Pilih Tanggal',
-                        style: TextStyle(
-                          color: AppColors.softBeige, // Warna teks softBeige
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: AppColors.softBeige),
                       ),
                     ),
                   ],
@@ -188,33 +219,14 @@ class _NotesPageState extends State<NotesPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _tugasController.clear();
-                _kegiatanController.clear();
-                _selectedDeadline = null;
-              },
-              child: Text(
-                'Batal',
-                style: TextStyle(
-                  color: Colors.red, // Warna tombol Batal
-                  fontSize: 16,
-                ),
-              ),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Batal', style: TextStyle(color: Colors.red)),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Save or update note logic
-              },
+              onPressed: _saveNote,
               style: ElevatedButton.styleFrom(
-                foregroundColor: AppColors.softBeige,
-                backgroundColor: AppColors.royalBlue, // Warna teks tombol
+                backgroundColor: AppColors.royalBlue,
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(10), // Membulatkan sudut tombol
-                ),
               ),
               child: Text(
                 _editingNoteId == null ? 'Tambah' : 'Simpan',
@@ -233,24 +245,17 @@ class _NotesPageState extends State<NotesPage> {
       appBar: AppBar(
         title: Text(
           'Catatan',
-          style: TextStyle(
-            color: AppColors.softBeige, // Warna teks softBeige
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: AppColors.softBeige),
         ),
-        backgroundColor: AppColors.royalBlue, // Latar belakang royalBlue
-        iconTheme:
-            IconThemeData(color: AppColors.softBeige), // Warna ikon softBeige
+        backgroundColor: AppColors.royalBlue,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
-            onPressed: _fetchNotes, // Fungsi untuk merefresh catatan
+            onPressed: _fetchNotes,
           ),
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: () =>
-                _showEditForm(null), // Fungsi untuk menambah catatan
+            onPressed: () => _showEditForm(null),
           ),
         ],
       ),
@@ -320,10 +325,7 @@ class _NotesPageState extends State<NotesPage> {
                         SizedBox(height: 6),
                         Text(
                           note['kegiatan'] ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.black87),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -344,7 +346,6 @@ class _NotesPageState extends State<NotesPage> {
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: AppColors.royalBlue,
-                            minimumSize: Size(double.infinity, 36),
                           ),
                         ),
                       ],
