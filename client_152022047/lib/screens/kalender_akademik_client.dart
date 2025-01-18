@@ -1,3 +1,4 @@
+import 'package:client_152022047/styles.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -36,8 +37,13 @@ class _KalenderAkademikClientPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Kalender Akademik'),
-        backgroundColor: Colors.blue, // Tambahkan tema warna sesuai kebutuhan
+        title: Text(
+          'Kalender Akademik',
+          style: TextStyle(color: AppColors.softBeige), // Warna teks AppBar
+        ),
+        backgroundColor: AppColors.royalBlue, // Warna latar AppBar
+        iconTheme:
+            IconThemeData(color: AppColors.softBeige), // Warna ikon AppBar
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _kalenders,

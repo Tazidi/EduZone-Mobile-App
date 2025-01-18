@@ -142,11 +142,15 @@ class _ClientDashboardState extends State<ClientDashboard> {
     final gridItems = _generateGridItems(user);
 
     return [
-      Column(
-        children: [
-          _buildUserCard(user),
-          Expanded(
-            child: GridView.builder(
+      SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildUserCard(user),
+            GridView.builder(
+              physics:
+                  NeverScrollableScrollPhysics(), // Disable GridView scroll
+              shrinkWrap:
+                  true, // Allow GridView to expand inside SingleChildScrollView
               padding: EdgeInsets.all(10),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -179,8 +183,8 @@ class _ClientDashboardState extends State<ClientDashboard> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       GoogleMapPage(),
       SettingScreen(user: user),
@@ -190,85 +194,53 @@ class _ClientDashboardState extends State<ClientDashboard> {
   Widget _buildUserCard(Map<String, dynamic> user) {
     return Column(
       children: [
-        SizedBox(height: 35), // Tambahkan jarak di atas Card
-        Card(
+        SizedBox(
+            height: 40), // Tambahkan jarak antara bagian atas dengan gambar
+        Container(
           margin: EdgeInsets.all(10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15), // Membuat sudut melengkung
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                blurRadius: 5,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
-          elevation: 5, // Memberikan efek bayangan
-          shadowColor: Colors.grey.withOpacity(0.5), // Warna bayangan
-          color: AppColors.royalBlue, // Warna Card
-          child: Padding(
-            padding: EdgeInsets.all(15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user['nama_lengkap'] ?? 'Tidak ada nama',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+          child: Column(
+            children: [
+              // Gambar
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(15),
                 ),
-                SizedBox(height: 10),
-                Row(
+                child: Image.asset(
+                  'assets/image/smp_dashboard.jpg', // Ganti dengan path gambar Anda
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              // Informasi
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.person, color: Colors.white),
-                    SizedBox(width: 10),
                     Text(
-                      'NIS: ${user['nis']}',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      'Halo, ${user['nama_lengkap'] ?? 'Tidak ada nama'}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.royalBlue,
+                      ),
                     ),
                   ],
                 ),
-                SizedBox(height: 5),
-                Row(
-                  children: [
-                    Icon(Icons.email, color: Colors.white),
-                    SizedBox(width: 10),
-                    Text(
-                      'Email: ${user['email']}',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 5),
-                Row(
-                  children: [
-                    Icon(Icons.phone, color: Colors.white),
-                    SizedBox(width: 10),
-                    Text(
-                      'Nomor Telepon: ${user['nomor_telepon'] ?? 'Tidak ada'}',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 5),
-                Row(
-                  children: [
-                    Icon(Icons.home, color: Colors.white),
-                    SizedBox(width: 10),
-                    Text(
-                      'Alamat: ${user['alamat'] ?? 'Tidak ada'}',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 5),
-                Row(
-                  children: [
-                    Icon(Icons.class_, color: Colors.white),
-                    SizedBox(width: 10),
-                    Text(
-                      'Kelas: ${user['kelas'] ?? 'Tidak ada'}',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -301,7 +273,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
               icon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Google Maps'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
+              icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

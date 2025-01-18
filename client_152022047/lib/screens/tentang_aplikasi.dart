@@ -29,9 +29,16 @@ class TentangAplikasiScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      'assets/image/Logo_Client.png', // Replace with your app logo asset
-                      height: 150,
+                    // Membuat gambar menjadi rounded
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                          75), // Radius 50% dari ukuran gambar
+                      child: Image.asset(
+                        'assets/image/Logo_Client.png', // Replace with your app logo asset
+                        height: 150,
+                        width: 150,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                     SizedBox(height: 16),
                     Text(

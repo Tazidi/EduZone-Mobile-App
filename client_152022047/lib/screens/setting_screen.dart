@@ -15,96 +15,13 @@ class SettingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUserCard(Map<String, dynamic> user) {
-    return Card(
-      margin: EdgeInsets.all(10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      elevation: 5,
-      shadowColor: Colors.grey.withOpacity(0.5),
-      color: AppColors.royalBlue, // Warna latar belakang Card
-      child: Padding(
-        padding: EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              user['nama_lengkap'] ?? 'Tidak ada nama',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.softBeige, // Warna teks
-              ),
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(Icons.person, color: AppColors.softBeige),
-                SizedBox(width: 10),
-                Text(
-                  'NIS: ${user['nis']}',
-                  style: TextStyle(fontSize: 16, color: AppColors.softBeige),
-                ),
-              ],
-            ),
-            SizedBox(height: 5),
-            Row(
-              children: [
-                Icon(Icons.email, color: AppColors.softBeige),
-                SizedBox(width: 10),
-                Text(
-                  'Email: ${user['email']}',
-                  style: TextStyle(fontSize: 16, color: AppColors.softBeige),
-                ),
-              ],
-            ),
-            SizedBox(height: 5),
-            Row(
-              children: [
-                Icon(Icons.phone, color: AppColors.softBeige),
-                SizedBox(width: 10),
-                Text(
-                  'Nomor Telepon: ${user['nomor_telepon'] ?? 'Tidak ada'}',
-                  style: TextStyle(fontSize: 16, color: AppColors.softBeige),
-                ),
-              ],
-            ),
-            SizedBox(height: 5),
-            Row(
-              children: [
-                Icon(Icons.home, color: AppColors.softBeige),
-                SizedBox(width: 10),
-                Text(
-                  'Alamat: ${user['alamat'] ?? 'Tidak ada'}',
-                  style: TextStyle(fontSize: 16, color: AppColors.softBeige),
-                ),
-              ],
-            ),
-            SizedBox(height: 5),
-            Row(
-              children: [
-                Icon(Icons.class_, color: AppColors.softBeige),
-                SizedBox(width: 10),
-                Text(
-                  'Kelas: ${user['kelas'] ?? 'Tidak ada'}',
-                  style: TextStyle(fontSize: 16, color: AppColors.softBeige),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false, // Menghilangkan tombol back
         title: Text(
-          'Settings',
+          'Profile',
           style: TextStyle(color: AppColors.softBeige), // Warna teks AppBar
         ),
         backgroundColor: AppColors.royalBlue, // Warna latar AppBar
@@ -114,58 +31,151 @@ class SettingScreen extends StatelessWidget {
       body: Container(
         color: AppColors.skyBlue, // Latar belakang utama
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildUserCard(user),
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: ElevatedButton.icon(
-                icon: Icon(Icons.edit, color: AppColors.softBeige),
-                label: Text(
-                  'Edit Profile',
-                  style: TextStyle(color: AppColors.softBeige),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.royalBlue,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 24,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditProfilePage(
-                        nis: user['nis'],
-                        user: {},
-                      ),
+            // Section 1: Profil
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              color: AppColors.skyBlue,
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor:
+                        AppColors.powderBlue, // Warna latar belakang
+                    child: Icon(
+                      Icons.person, // Icon user default
+                      size: 50,
+                      color: AppColors.royalBlue, // Warna icon
                     ),
-                  );
-                },
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    user['nama_lengkap'] ?? 'Tidak ada nama',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.royalBlue,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    user['email'] ?? 'Tidak ada email',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'NIS: ${user['nis']?.toString() ?? 'Tidak ada NIS'}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: ElevatedButton.icon(
-                icon: Icon(Icons.logout, color: AppColors.softBeige),
-                label: Text(
-                  'Logout',
-                  style: TextStyle(color: AppColors.softBeige),
+            Divider(height: 1, thickness: 1, color: Colors.grey[500]),
+
+            // Section 2: Informasi Detail
+            Expanded(
+              child: Container(
+                color: AppColors.skyBlue,
+                child: ListView(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.person, color: AppColors.royalBlue),
+                      title: Text(
+                        'Nama Lengkap',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(user['nama_lengkap'] ?? 'Tidak ada nama'),
+                    ),
+                    Divider(height: 1, thickness: 1, color: Colors.grey[500]),
+                    ListTile(
+                      leading: Icon(Icons.badge, color: AppColors.royalBlue),
+                      title: Text(
+                        'NIS',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle:
+                          Text(user['nis']?.toString() ?? 'Tidak ada NIS'),
+                    ),
+                    Divider(height: 1, thickness: 1, color: Colors.grey[500]),
+                    ListTile(
+                      leading: Icon(Icons.class_, color: AppColors.royalBlue),
+                      title: Text(
+                        'Kelas',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(user['kelas'] ?? 'Tidak ada kelas'),
+                    ),
+                    Divider(height: 1, thickness: 1, color: Colors.grey[500]),
+                    ListTile(
+                      leading: Icon(Icons.home, color: AppColors.royalBlue),
+                      title: Text(
+                        'Alamat',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(user['alamat'] ?? 'Tidak ada alamat'),
+                    ),
+                    Divider(height: 1, thickness: 1, color: Colors.grey[500]),
+                  ],
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gingerbread, // Warna tombol logout
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 24,
+              ),
+            ),
+
+            // Section 3: Tombol di bagian paling bawah
+            Container(
+              color: AppColors.skyBlue,
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.edit, color: AppColors.softBeige),
+                    label: Text(
+                      'Edit Profile',
+                      style: TextStyle(color: AppColors.softBeige),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.powderBlue,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditProfilePage(
+                            nis: user['nis'],
+                            user: {},
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.logout, color: AppColors.softBeige),
+                    label: Text(
+                      'Logout',
+                      style: TextStyle(color: AppColors.softBeige),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gingerbread,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () => _logout(context),
                   ),
-                ),
-                onPressed: () => _logout(context),
+                ],
               ),
             ),
           ],
